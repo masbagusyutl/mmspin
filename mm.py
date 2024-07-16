@@ -7,6 +7,12 @@ def read_tokens(file_path='data.txt'):
         tokens = [line.strip() for line in file]
     return tokens
 
+# Fungsi untuk membaca cookies dari file c.txt
+def read_cookies(file_path='c.txt'):
+    with open(file_path, 'r') as file:
+        cookies = [line.strip() for line in file]
+    return cookies
+
 # Fungsi untuk menampilkan hitung mundur
 def countdown_timer(seconds):
     while seconds:
@@ -39,9 +45,11 @@ def spin_lottery(headers, spins=5):
         time.sleep(1)  # Optional delay between spins
 
 # Fungsi untuk memproses satu akun
-def process_single_account(token, spins):
+def process_single_account(token, cookie, spins):
     headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {token}",
+        "Cookie": cookie,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0"
     }
     task_sign_in(headers)
     spin_lottery(headers, spins=spins)
@@ -51,12 +59,13 @@ def process_single_account(token, spins):
 # Fungsi utama untuk memproses semua akun
 def process_all_accounts(spins):
     tokens = read_tokens()
+    cookies = read_cookies()
     total_accounts = len(tokens)
     print(f"Total accounts: {total_accounts}")
 
-    for index, token in enumerate(tokens, start=1):
+    for index, (token, cookie) in enumerate(zip(tokens, cookies), start=1):
         print(f"\nProcessing account {index}/{total_accounts}")
-        process_single_account(token, spins)
+        process_single_account(token, cookie, spins)
 
         if index < total_accounts:
             print(f"Waiting for 5 seconds before switching to the next account...")
@@ -75,8 +84,9 @@ def main():
     if choice == 'yes':
         account_index = int(input("Enter the account number to process (1-based index): ")) - 1
         tokens = read_tokens()
+        cookies = read_cookies()
         if 0 <= account_index < len(tokens):
-            process_single_account(tokens[account_index], spins)
+            process_single_account(tokens[account_index], cookies[account_index], spins)
         else:
             print("Invalid account number.")
     else:
