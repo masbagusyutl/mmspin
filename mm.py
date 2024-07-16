@@ -49,7 +49,26 @@ def process_single_account(token, cookie, spins):
     headers = {
         "Authorization": f"Bearer {token}",
         "Cookie": cookie,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0",
+        ":authority": "memespin.net",
+        ":method": "POST",
+        ":path": "/api/v1/game/roulette/lottery",
+        ":scheme": "https",
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+        "Cache-Control": "no-cache",
+        "Content-Length": "0",
+        "Origin": "https://memespin.net",
+        "Pragma": "no-cache",
+        "Priority": "u=1, i",
+        "Referer": "https://memespin.net/",
+        "Sec-Ch-Ua": '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126", "Microsoft Edge WebView2";v="126"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"Windows"',
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin"
     }
     task_sign_in(headers)
     spin_lottery(headers, spins=spins)
