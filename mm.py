@@ -1,6 +1,5 @@
 import time
 import requests
-import datetime
 
 # Fungsi untuk membaca token dari file data.txt
 def read_tokens(file_path='data.txt'):
@@ -39,22 +38,26 @@ def spin_lottery(headers, spins=5):
             print("Failed to complete spin.")
         time.sleep(1)  # Optional delay between spins
 
-# Fungsi utama
-def main():
+# Fungsi untuk memproses satu akun
+def process_single_account(token, spins):
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    task_sign_in(headers)
+    spin_lottery(headers, spins=spins)
+    task_sign_in(headers)
+    spin_lottery(headers, spins=spins)
+
+# Fungsi utama untuk memproses semua akun
+def process_all_accounts(spins):
     tokens = read_tokens()
     total_accounts = len(tokens)
     print(f"Total accounts: {total_accounts}")
 
     for index, token in enumerate(tokens, start=1):
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
         print(f"\nProcessing account {index}/{total_accounts}")
-        task_sign_in(headers)
-        spin_lottery(headers, spins=5)
-        task_sign_in(headers)
-        spin_lottery(headers, spins=5)
-        
+        process_single_account(token, spins)
+
         if index < total_accounts:
             print(f"Waiting for 5 seconds before switching to the next account...")
             time.sleep(5)
@@ -63,6 +66,21 @@ def main():
     countdown_timer(24 * 60 * 60)
     print("Restarting process...")
     main()
+
+# Fungsi utama yang memberikan pilihan kepada pengguna
+def main():
+    choice = input("Do you want to process a single account? (yes/no): ").strip().lower()
+    spins = int(input("Enter the number of spins for each task: "))
+
+    if choice == 'yes':
+        account_index = int(input("Enter the account number to process (1-based index): ")) - 1
+        tokens = read_tokens()
+        if 0 <= account_index < len(tokens):
+            process_single_account(tokens[account_index], spins)
+        else:
+            print("Invalid account number.")
+    else:
+        process_all_accounts(spins)
 
 if __name__ == "__main__":
     main()
