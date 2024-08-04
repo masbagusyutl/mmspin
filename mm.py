@@ -79,11 +79,14 @@ def spin_lottery(headers, spins):
             print(f"Spin ke-{spin_num + 1}")
             response = requests.post(url, headers=headers)
             if response.status_code == 200:
-                data = response.json()['data']
-                print(f"prize_token: {data['prize_token']}")
-                print(f"amount: {data['amount']}")
-                print(f"usd_amount: {data['usd_amount']}")
-                success_spins += 1
+                data = response.json().get('data')
+                if data:  # Check if data is not None
+                    print(f"prize_token: {data['prize_token']}")
+                    print(f"amount: {data['amount']}")
+                    print(f"usd_amount: {data['usd_amount']}")
+                    success_spins += 1
+                else:
+                    print("Received response but data is None.")
             else:
                 print("Failed to complete spin.")
             time.sleep(1)  # Optional delay between spins
