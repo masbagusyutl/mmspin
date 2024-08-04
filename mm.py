@@ -91,6 +91,11 @@ def spin_lottery(headers, spins):
         if success_spins >= spins:
             break  # Exit if the required spins are successful
 
+    if success_spins >= spins:
+        print("Kesempatan spin sudah berhasil dilaksanakan semua.")
+    else:
+        print("Kesempatan spin belum berhasil dilaksanakan semua.")
+
 # Fungsi untuk memproses satu akun
 def process_single_account(telegram_data, auth_token, cookie):
     new_token = login_task(telegram_data, auth_token, cookie)
@@ -146,9 +151,9 @@ def process_all_accounts():
 
 # Fungsi utama yang memberikan pilihan kepada pengguna
 def main():
-    choice = input("Do you want to process a single account? (yes/no): ").strip().lower()
+    choice = input("Do you want to process all accounts or a single account? (all/single): ").strip().lower()
 
-    if choice == 'yes':
+    if choice == 'single':
         account_index = int(input("Enter the account number to process (1-based index): ")) - 1
         accounts = read_accounts()
         if 0 <= account_index < len(accounts):
