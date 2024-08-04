@@ -10,7 +10,7 @@ def read_accounts(file_path='data.txt'):
     accounts = []
     for i in range(0, len(lines), 3):
         telegram_data = lines[i].strip()
-        auth_token = lines[i+1].strip().split(' ')[1]  # remove "Authorization: "
+        auth_token = lines[i+1].strip().replace('Authorization: ', '')  # remove "Authorization: "
         cookie = lines[i+2].strip()
         accounts.append((telegram_data, auth_token, cookie))
     return accounts
