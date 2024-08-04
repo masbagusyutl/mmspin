@@ -33,9 +33,11 @@ def countdown_timer(seconds):
     print()
 
 # Fungsi untuk tugas login dan memperbarui token
-def login_task(telegram_data):
+def login_task(telegram_data, auth_token, cookie):
     url = "https://memespin.net/api/v1/user/telegram/login"
     headers = {
+        "Authorization": f"Bearer {auth_token}",
+        "Cookie": cookie,
         "Content-Type": "application/json",
         "Accept": "*/*",
         "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -83,7 +85,7 @@ def spin_lottery(headers, spins):
 
 # Fungsi untuk memproses satu akun
 def process_single_account(telegram_data, auth_token, cookie):
-    new_token = login_task(telegram_data)
+    new_token = login_task(telegram_data, auth_token, cookie)
     if new_token:
         auth_token = new_token  # update token
     headers = {
