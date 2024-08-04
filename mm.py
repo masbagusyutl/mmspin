@@ -72,16 +72,24 @@ def get_account_info(headers):
 # Fungsi untuk melakukan request spin
 def spin_lottery(headers, spins):
     url = "https://memespin.net/api/v1/game/roulette/lottery"
-    for _ in range(spins):
-        response = requests.post(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()['data']
-            print(f"prize_token: {data['prize_token']}")
-            print(f"amount: {data['amount']}")
-            print(f"usd_amount: {data['usd_amount']}")
-        else:
-            print("Failed to complete spin.")
-        time.sleep(1)  # Optional delay between spins
+    success_spins = 0
+
+    for attempt in range(3):  # Maximum 3 attempts
+        for spin_num in range(spins):
+            print(f"Spin ke-{spin_num + 1}")
+            response = requests.post(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()['data']
+                print(f"prize_token: {data['prize_token']}")
+                print(f"amount: {data['amount']}")
+                print(f"usd_amount: {data['usd_amount']}")
+                success_spins += 1
+            else:
+                print("Failed to complete spin.")
+            time.sleep(1)  # Optional delay between spins
+
+        if success_spins >= spins:
+            break  # Exit if the required spins are successful
 
 # Fungsi untuk memproses satu akun
 def process_single_account(telegram_data, auth_token, cookie):
