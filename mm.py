@@ -1,17 +1,25 @@
 import time
 import requests
+import json
 
-# Fungsi untuk membaca token dari file data.txt
-def read_tokens(file_path='data.txt'):
+# Fungsi untuk membaca data akun dari file data.txt
+def read_accounts(file_path='data.txt'):
     with open(file_path, 'r') as file:
-        tokens = [line.strip() for line in file]
-    return tokens
+        lines = file.readlines()
+    
+    accounts = []
+    for i in range(0, len(lines), 3):
+        telegram_data = lines[i].strip()
+        auth_token = lines[i+1].strip().split(' ')[1]  # remove "Authorization: "
+        cookie = lines[i+2].strip()
+        accounts.append((telegram_data, auth_token, cookie))
+    return accounts
 
-# Fungsi untuk membaca cookies dari file c.txt
-def read_cookies(file_path='c.txt'):
-    with open(file_path, 'r') as file:
-        cookies = [line.strip() for line in file]
-    return cookies
+# Fungsi untuk menyimpan akun dengan token baru ke file data.txt
+def save_accounts(accounts, file_path='data.txt'):
+    with open(file_path, 'w') as file:
+        for telegram_data, auth_token, cookie in accounts:
+            file.write(f"{telegram_data}\nAuthorization: {auth_token}\n{cookie}\n")
 
 # Fungsi untuk menampilkan hitung mundur
 def countdown_timer(seconds):
@@ -24,37 +32,68 @@ def countdown_timer(seconds):
         seconds -= 1
     print()
 
-# Fungsi untuk melakukan request tugas sign-in
-def task_sign_in(headers):
-    url = "https://memespin.net/api/v1/task/sign-in"
-    response = requests.post(url, headers=headers)
+# Fungsi untuk tugas login dan memperbarui token
+def login_task(telegram_data):
+    url = "https://memespin.net/api/v1/user/telegram/login"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+        "Cache-Control": "no-cache",
+        "Origin": "https://memespin.net",
+        "Pragma": "no-cache",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0"
+    }
+    response = requests.post(url, headers=headers, data=json.dumps({"telegram_data": telegram_data}))
     if response.status_code == 200:
-        print("Sign-in task completed successfully.")
+        return response.json()['data']['access_token']
     else:
-        print("Failed to complete sign-in task.")
+        print("Failed to login and update token.")
+        return None
+
+# Fungsi untuk mendapatkan informasi akun
+def get_account_info(headers):
+    url = "https://memespin.net/api/v1/user/info"
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()['data']
+        print(f"telegram_id: {data['telegram_id']}")
+        print(f"game_coins: {data['game_coins']}")
+        print(f"diamonds: {data['diamonds']}")
+        print(f"game_times: {data['game_times']}")
+        return data['game_times']
+    else:
+        print("Failed to get account info.")
+        return 0
 
 # Fungsi untuk melakukan request spin
-def spin_lottery(headers, spins=5):
+def spin_lottery(headers, spins):
     url = "https://memespin.net/api/v1/game/roulette/lottery"
     for _ in range(spins):
         response = requests.post(url, headers=headers)
         if response.status_code == 200:
-            print("Spin completed successfully.")
+            data = response.json()['data']
+            print(f"prize_token: {data['prize_token']}")
+            print(f"amount: {data['amount']}")
+            print(f"usd_amount: {data['usd_amount']}")
         else:
             print("Failed to complete spin.")
         time.sleep(1)  # Optional delay between spins
 
 # Fungsi untuk memproses satu akun
-def process_single_account(token, cookie, spins):
+def process_single_account(telegram_data, auth_token, cookie):
+    new_token = login_task(telegram_data)
+    if new_token:
+        auth_token = new_token  # update token
     headers = {
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {auth_token}",
         "Cookie": cookie,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0",
         "Accept": "*/*",
         "Accept-Encoding": "gzip, deflate, br, zstd",
         "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
         "Cache-Control": "no-cache",
-        "Content-Length": "0",
         "Origin": "https://memespin.net",
         "Pragma": "no-cache",
         "Priority": "u=1, i",
@@ -66,26 +105,27 @@ def process_single_account(token, cookie, spins):
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin"
     }
-    task_sign_in(headers)
-    spin_lottery(headers, spins=spins)
-    task_sign_in(headers)
-    spin_lottery(headers, spins=spins)
+    game_times = get_account_info(headers)
+    spin_lottery(headers, spins=game_times)
+    return auth_token
 
 # Fungsi utama untuk memproses semua akun
-def process_all_accounts(spins):
-    tokens = read_tokens()
-    cookies = read_cookies()
-    total_accounts = len(tokens)
+def process_all_accounts():
+    accounts = read_accounts()
+    total_accounts = len(accounts)
     print(f"Total accounts: {total_accounts}")
 
-    for index, (token, cookie) in enumerate(zip(tokens, cookies), start=1):
+    updated_accounts = []
+    for index, (telegram_data, auth_token, cookie) in enumerate(accounts, start=1):
         print(f"\nProcessing account {index}/{total_accounts}")
-        process_single_account(token, cookie, spins)
+        new_auth_token = process_single_account(telegram_data, auth_token, cookie)
+        updated_accounts.append((telegram_data, new_auth_token, cookie))
 
         if index < total_accounts:
             print(f"Waiting for 5 seconds before switching to the next account...")
             time.sleep(5)
 
+    save_accounts(updated_accounts)
     print("All accounts processed. Starting 1-day countdown...")
     countdown_timer(24 * 60 * 60)
     print("Restarting process...")
@@ -94,18 +134,19 @@ def process_all_accounts(spins):
 # Fungsi utama yang memberikan pilihan kepada pengguna
 def main():
     choice = input("Do you want to process a single account? (yes/no): ").strip().lower()
-    spins = int(input("Enter the number of spins for each task: "))
 
     if choice == 'yes':
         account_index = int(input("Enter the account number to process (1-based index): ")) - 1
-        tokens = read_tokens()
-        cookies = read_cookies()
-        if 0 <= account_index < len(tokens):
-            process_single_account(tokens[account_index], cookies[account_index], spins)
+        accounts = read_accounts()
+        if 0 <= account_index < len(accounts):
+            telegram_data, auth_token, cookie = accounts[account_index]
+            new_auth_token = process_single_account(telegram_data, auth_token, cookie)
+            accounts[account_index] = (telegram_data, new_auth_token, cookie)
+            save_accounts(accounts)
         else:
             print("Invalid account number.")
     else:
-        process_all_accounts(spins)
+        process_all_accounts()
 
 if __name__ == "__main__":
     main()
