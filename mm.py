@@ -116,7 +116,10 @@ def process_single_account(telegram_data, auth_token, cookie):
         "Sec-Fetch-Site": "same-origin"
     }
     game_times = get_account_info(headers)
-    spin_lottery(headers, spins=game_times)
+    if game_times > 0:
+        spin_lottery(headers, spins=game_times)
+    else:
+        print("Belum ada kesempatan spin untuk akun ini.")
     return auth_token
 
 # Fungsi utama untuk memproses semua akun
