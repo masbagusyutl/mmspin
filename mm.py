@@ -1,5 +1,6 @@
 import time
 import requests
+import json
 
 # Fungsi untuk membaca data akun dari file data.txt
 def read_accounts(file_path='data.txt'):
@@ -52,7 +53,11 @@ def login_task(telegram_data, auth_token, cookie):
     response = requests.post(url, headers=headers, data=telegram_data)
     if response.status_code == 200:
         print("Login task completed successfully.")
-        data = response.json()
+        try:
+            data = response.json()
+        except json.JSONDecodeError:
+            print("Error decoding JSON response.")
+            return None
         return data.get('data', {}).get('access_token')
     else:
         print("Failed to complete login task.")
@@ -72,7 +77,11 @@ def get_account_info(headers):
     url = "https://memespin.net/api/v1/user/info"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        data = response.json().get('data', {})
+        try:
+            data = response.json().get('data', {})
+        except json.JSONDecodeError:
+            print("Error decoding JSON response.")
+            return 0
         telegram_id = data.get('telegram_id')
         game_coins = data.get('game_coins')
         diamonds = data.get('diamonds')
@@ -94,7 +103,11 @@ def spin_lottery(headers, spins):
         print(f"Spin ke-{i + 1}")
         response = requests.post(url, headers=headers)
         if response.status_code == 200:
-            data = response.json().get('data', {})
+            try:
+                data = response.json().get('data', {})
+            except json.JSONDecodeError:
+                print("Error decoding JSON response.")
+                continue
             print(f"prize_token: {data.get('prize_token')}")
             print(f"amount: {data.get('amount')}")
             print(f"usd_amount: {data.get('usd_amount')}")
