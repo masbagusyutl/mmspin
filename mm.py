@@ -89,7 +89,7 @@ def spin_lottery(headers, spins):
                     print("Received response but data is None.")
             else:
                 print("Failed to complete spin.")
-            time.sleep(1)  # Optional delay between spins
+            time.sleep(3)  # Optional delay between spins
 
         if success_spins >= spins:
             break  # Exit if the required spins are successful
