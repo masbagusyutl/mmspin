@@ -54,6 +54,15 @@ def login_task(telegram_data, auth_token, cookie):
         print("Failed to login and update token.")
         return None
 
+# Fungsi untuk tugas sign-in
+def sign_in_task(headers):
+    url = "https://memespin.net/api/v1/task/sign-in"
+    response = requests.post(url, headers=headers)
+    if response.status_code == 200:
+        print("Sign-in successful.")
+    else:
+        print("Failed to sign-in.")
+
 # Fungsi untuk mendapatkan informasi akun
 def get_account_info(headers):
     url = "https://memespin.net/api/v1/user/info"
@@ -89,7 +98,7 @@ def spin_lottery(headers, spins):
                     print("Received response but data is None.")
             else:
                 print("Failed to complete spin.")
-            time.sleep(3)  # Optional delay between spins
+            time.sleep(6)  # Optional delay between spins
 
         if success_spins >= spins:
             break  # Exit if the required spins are successful
@@ -123,6 +132,7 @@ def process_single_account(telegram_data, auth_token, cookie):
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin"
     }
+    sign_in_task(headers)  # Added sign-in task
     game_times = get_account_info(headers)
     if game_times > 0:
         spin_lottery(headers, spins=game_times)
