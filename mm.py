@@ -1,6 +1,7 @@
 import time
 import requests
 import json
+import os
 
 # Fungsi untuk membaca data akun dari file data.txt
 def read_accounts(file_path='data.txt'):
@@ -31,6 +32,18 @@ def countdown_timer(seconds):
         time.sleep(1)
         seconds -= 1
     print()
+
+# Fungsi untuk menyimpan pilihan pengguna ke file
+def save_user_choice(choice):
+    with open('user_choice.txt', 'w') as file:
+        file.write(choice)
+
+# Fungsi untuk membaca pilihan pengguna dari file
+def read_user_choice():
+    if os.path.exists('user_choice.txt'):
+        with open('user_choice.txt', 'r') as file:
+            return file.read().strip()
+    return None
 
 # Fungsi untuk tugas login dan memperbarui token
 def login_task(telegram_data, auth_token, cookie):
@@ -164,20 +177,37 @@ def process_all_accounts():
 
 # Fungsi utama yang memberikan pilihan kepada pengguna
 def main():
-    choice = input("Do you want to process all accounts or a single account? (all/single): ").strip().lower()
-
-    if choice == 'single':
-        account_index = int(input("Enter the account number to process (1-based index): ")) - 1
-        accounts = read_accounts()
-        if 0 <= account_index < len(accounts):
-            telegram_data, auth_token, cookie = accounts[account_index]
-            new_auth_token = process_single_account(telegram_data, auth_token, cookie)
-            accounts[account_index] = (telegram_data, new_auth_token, cookie)
-            save_accounts(accounts)
-        else:
-            print("Invalid account number.")
+    saved_choice = read_user_choice()
+    if saved_choice:
+        if saved_choice == 'all':
+            process_all_accounts()
+        elif saved_choice == 'single':
+            account_index = int(input("Enter the account number to process (1-based index): ")) - 1
+            accounts = read_accounts()
+            if 0 <= account_index < len(accounts):
+                telegram_data, auth_token, cookie = accounts[account_index]
+                new_auth_token = process_single_account(telegram_data, auth_token, cookie)
+                accounts[account_index] = (telegram_data, new_auth_token, cookie)
+                save_accounts(accounts)
+            else:
+                print("Invalid account number.")
     else:
-        process_all_accounts()
+        choice = input("Do you want to process all accounts or a single account? (all/single): ").strip().lower()
+        save_user_choice(choice)
+        if choice == 'all':
+            process_all_accounts()
+        elif choice == 'single':
+            account_index = int(input("Enter the account number to process (1-based index): ")) - 1
+            accounts = read_accounts()
+            if 0 <= account_index < len(accounts):
+                telegram_data, auth_token, cookie = accounts[account_index]
+                new_auth_token = process_single_account(telegram_data, auth_token, cookie)
+                accounts[account_index] = (telegram_data, new_auth_token, cookie)
+                save_accounts(accounts)
+            else:
+                print("Invalid account number.")
+        else:
+            print("Invalid choice.")
 
 if __name__ == "__main__":
     main()
